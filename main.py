@@ -1,23 +1,30 @@
+import telebot
+import time
+from datetime import datetime
 
-import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+API_TOKEN = '8061215565:AAGpobcJor03wow2SmoVYN48RnF9UBet62g'
+GROUP_CHAT_ID = '@Mousa_SmartBot_Group'
 
-TOKEN = "8061215565:AAGpobcJor03wow2SmoVYN48RnF9UBet62g"
+bot = telebot.TeleBot(API_TOKEN)
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "✅ تم تفعيل البوت الذكي بنجاح!")
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("مرحبًا بك في بوت Mousa_SmartBot للتوصيات الذكية 📊")
+def generate_signal():
+    now = datetime.utcnow().minute
+    if now % 2 == 0:
+        return "🔔 BUY signal - Confidence: 94%"
+    else:
+        return "🔻 SELL signal - Confidence: 91%"
 
-async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🚀 إشارة شراء: EUR/USD فوق مستوى 1.0850 - الهدف 1.0900")
+def send_signals():
+    while True:
+        signal = generate_signal()
+        bot.send_message(GROUP_CHAT_ID, f"📡 Smart Signal:\n{signal}")
+        time.sleep(60)
 
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("signal", signal))
+import threading
+threading.Thread(target=send_signals).start()
 
-app.run_polling()
+bot.polling()
