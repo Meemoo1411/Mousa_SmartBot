@@ -1,20 +1,30 @@
-import time
-import yfinance as yf
-import pandas as pd
-import ta
-import telebot
-import time
-import threading
-from datetime import datetime
 
-API_TOKEN = '8061215565:AAGpobcJor03wow2SmoVYN48RnF9UBet62g'
-USER_CHAT_ID = 839738530  # يرسل التوصيات للبوت الخاص فقط
+# Telegram Bot Script - For Real Trading Recommendations
 
-bot = telebot.TeleBot(API_TOKEN)
+import telegram
+from telegram.ext import Updater, CommandHandler
+import logging
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "✅ تم تفعيل البوت الذكي V3 بنجاح! \nسوف تصلك التوصيات مباشرة هنا 📡")
+# Bot token (replace with actual token securely)
+TOKEN = "8061215565:AAGpobcJor03wow2SmoVYN48RnF9UBet62g"
+
+# Enable logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def start(update, context):
+    update.message.reply_text("✅ تم تفعيل البوت الذكي بنجاح!")
+
+def main():
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler("start", start))
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
 
 # الأزواج المدعومة (تحويل أسماء Yahoo Finance)
 pairs = {
