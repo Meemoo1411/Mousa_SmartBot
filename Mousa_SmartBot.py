@@ -1,38 +1,66 @@
-
-import os
-import time
 import logging
+import yfinance as yf
+import pandas as pd
+import ta
+import time
 from telegram import Bot
-from telegram.ext import Updater, CommandHandler
-from signals import generate_signal
+import os
 
-logging.basicConfig(level=logging.INFO)
-
-TOKEN = os.getenv("BOT_TOKEN")
-USERNAME = os.getenv("BOT_USERNAME")
-
+# إعداد التوكن واسم البوت من المتغيرات البيئية أو بشكل مباشر
+TOKEN = "8061215565:AAGpobcJor03wow2SmoVYN48RnF9UBet62g"
 bot = Bot(token=TOKEN)
 
-def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="✅ بوت التوصيات شغال بنجاح!")
+# قائمة الأزواج المطلوبة
+symbols = ["EURUSD=X", "GBPUSD=X", "USDJPY=X", "AUDUSD=X", "USDCAD=X", "NZDUSD=X", "USDCHF=X", "BTC-USD", "ETH-USD"]
 
-def send_signal(context):
-    signal = generate_signal()
-    if signal:
-        context.bot.send_message(chat_id=update.job.context, text=signal)
+# تحليل الذكاء الاصطناعي البسيط: فلترة باستخدام RSI و MACD والدعم والمقاومة
+def analyze(symbol):
+    try:
+        data = yf.download(symbol, period="2d", interval="1m")
+        if data.empty or len(data) < 10:
+            return None
 
-def main():
-    updater = Updater(token=TOKEN, use_context=True)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start))
+        df = ta.add_all_ta_features(data, open="Open", high="High", low="Low", close="Close", volume="Volume")
+        rsi = df["momentum_rsi"].iloc[-1]
+        macd = df["trend_macd"].iloc[-1]
+        signal = df["trend_macd_signal"].iloc[-1]
+        support = df["Low"].rolling(window=10).min().iloc[-1]
+        resistance = df["High"].rolling(window=10).max().iloc[-1]
 
-    job_queue = updater.job_queue
-    chat_id = os.getenv("USER_CHAT_ID")  # أو عيّنه يدويًا للتجربة
-    if chat_id:
-        job_queue.run_repeating(send_signal, interval=60, first=5, context=chat_id)
+        confidence = 0
+        recommendation = "❕ انتظر"
 
-    updater.start_polling()
-    updater.idle()
+        if rsi < 30 and macd > signal:
+            confidence = 91
+            recommendation = "✅ شراء"
+        elif rsi > 70 and macd < signal:
+            confidence = 92
+            recommendation = "❌ بيع"
+        elif (rsi > 40 and rsi < 60) and abs(macd - signal) < 0.1:
+            confidence = 85
+            recommendation = "⚠️ تذبذب"
 
-if __name__ == "__main__":
-    main()
+        if confidence >= 90:
+            message = f"🔔 توصية ذكية
+الزوج: {symbol.replace('=X','')}
+RSI: {round(rsi,2)} | MACD: {round(macd,2)}
+الدعم: {round(support,2)} | المقاومة: {round(resistance,2)}
+📊 نسبة الثقة: {confidence}%
+📈 {recommendation}"
+            return message
+        else:
+            return None
+    except:
+        return None
+
+# إرسال التوصيات تلقائيًا
+while True:
+    for symbol in symbols:
+        result = analyze(symbol)
+        if result:
+            try:
+                bot.send_message(chat_id='@Mousa_SmartBot', text=result)
+            except Exception as e:
+                print(f"Error sending message for {symbol}: {e}")
+        time.sleep(2)
+    time.sleep(60)
