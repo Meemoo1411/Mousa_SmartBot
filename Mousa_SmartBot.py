@@ -43,6 +43,8 @@ def analyze(symbol):
         if confidence >= 90:
             message = f"🔔 توصية ذكية من البوت:\n"
             message += f"{signal}"
+def analyze_pair(symbol):
+    try:
 pair_name = symbol.replace('=X','')
 RSI: {round(rsi,2)} | MACD: {round(macd,2)}
 الدعم: {round(support,2)} | المقاومة: {round(resistance,2)}
