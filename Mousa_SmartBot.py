@@ -41,7 +41,7 @@ def analyze_pair(symbol):
 
         confidence = 90
         message = f"📉 توصية ذكية\nزوج: {pair_name}\nRSI: {round(rsi,2)} | MACD: {round(macd,2)}\nالدعم: {round(support,2)} | المقاومة: {round(resistance,2)}\nنسبة الثقة: {confidence}%\nالتوصية: {recommendation}"
-زوج: {pair_name}
+message = f"زوج: {pair_name}"
 نسبة الثقة: {confidence}%
 RSI: {round(rsi, 2)} | MACD: {round(macd, 2)}
 الدعم: {round(support, 2)} | المقاومة: {round(resistance, 2)}
