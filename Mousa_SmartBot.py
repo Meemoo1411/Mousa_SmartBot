@@ -46,7 +46,7 @@ def analyze(symbol):
 الزوج: {symbol.replace('=X','')}
 RSI: {round(rsi,2)} | MACD: {round(macd,2)}
 الدعم: {round(support,2)} | المقاومة: {round(resistance,2)}
-📊 نسبة الثقة: {confidence}%
+message += f"نسبة الثقة: {confidence}%\n"%
 📈 {recommendation}"
             return message
         else:
