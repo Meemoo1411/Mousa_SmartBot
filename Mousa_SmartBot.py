@@ -47,7 +47,7 @@ def analyze(symbol):
 RSI: {round(rsi,2)} | MACD: {round(macd,2)}
 الدعم: {round(support,2)} | المقاومة: {round(resistance,2)}
 message += f"نسبة الثقة: {confidence}%\n"%
-📈 {recommendation}"
+message += f"{recommendation}"
             return message
         else:
             return None
