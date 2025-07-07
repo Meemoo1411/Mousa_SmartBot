@@ -2,81 +2,91 @@ import logging
 import yfinance as yf
 import pandas as pd
 import ta
-import time
+from datetime import datetime, timedelta
 from telegram import Bot
-from datetime import datetime
+from telegram.ext import ApplicationBuilder, CommandHandler
+import asyncio
 
-# التوكن واسم البوت
 TOKEN = "8061215565:AAGpobcJor03wow2SmoVYN48RnF9UBet62g"
-CHAT_ID = "@Mousa_SmartBot"
+GROUP_ID = "@Mousa_SmartBot_Group"
+PRIVATE_USERNAME = "@Mousa_SmartBot"
 
-# إعداد البوت والتسجيل
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+
 bot = Bot(token=TOKEN)
-logging.basicConfig(level=logging.INFO)
 
-# دالة التحليل الفني الكامل
-
-import yfinance as yf
+symbol_list = [
+    "EURUSD=X", "USDJPY=X", "GBPUSD=X", "USDCHF=X", "AUDUSD=X", "NZDUSD=X",
+    "USDCAD=X", "EURJPY=X", "GBPJPY=X", "EURGBP=X", "EURCHF=X", "AUDJPY=X",
+    "BTC-USD", "ETH-USD"
+]
 
 def analyze_pair(symbol):
     try:
-        pair_name = symbol.replace('=X', '')
-
-        # جلب البيانات
-        df = yf.download(symbol, period='1d', interval='1m')
-        if df is None or df.empty:
+        data = yf.download(symbol, period="2d", interval="1m")
+        if data.empty or len(data) < 10:
             return None
 
-        # حساب المؤشرات
-        df['EMA_20'] = df['Close'].ewm(span=20, adjust=False).mean()
-        df['EMA_50'] = df['Close'].ewm(span=50, adjust=False).mean()
+        df = ta.add_all_ta_features(data, open="Open", high="High", low="Low", close="Close", volume="Volume")
 
-        delta = df['Close'].diff()
-        gain = delta.where(delta > 0, 0)
-        loss = -delta.where(delta < 0, 0)
-        avg_gain = gain.rolling(window=14).mean()
-        avg_loss = loss.rolling(window=14).mean()
-        rs = avg_gain / avg_loss
-        rsi = 100 - (100 / (1 + rs))
-        df['RSI'] = rsi
+        rsi = df["momentum_rsi"].iloc[-1]
+        macd = df["trend_macd"].iloc[-1]
+        support = df["Low"].rolling(window=5).min().iloc[-1]
+        resistance = df["High"].rolling(window=5).max().iloc[-1]
 
-        exp1 = df['Close'].ewm(span=12, adjust=False).mean()
-        exp2 = df['Close'].ewm(span=26, adjust=False).mean()
-        df['MACD'] = exp1 - exp2
+        recommendation = ""
+        confidence = 50
 
-        recent = df.iloc[-1]
-        support = df['Low'].rolling(window=20).min().iloc[-1]
-        resistance = df['High'].rolling(window=20).max().iloc[-1]
+        if rsi < 30 and macd < 0:
+            recommendation = "شراء"
+            confidence = 92
+        elif rsi > 70 and macd > 0:
+            recommendation = "بيع"
+            confidence = 93
+        else:
+            recommendation = "انتظار"
+            confidence = 85
 
-        recommendation = "شراء" if (recent['MACD'] > 0 and recent['RSI'] < 70) else "بيع"
-        confidence = 90 if recommendation == "شراء" else 85
+        if confidence < 90:
+            return None
 
-        message = (
-            f"تحليل زوج: {pair_name}\n"
-            f"RSI: {round(recent['RSI'], 2)} | MACD: {round(recent['MACD'], 2)}\n"
-            f"الدعم: {round(support, 2)} | المقاومة: {round(resistance, 2)}\n"
-            f"التوصية: {recommendation} | نسبة الثقة: {confidence}%"
-        )
-        return message
+        now = datetime.utcnow() + timedelta(minutes=1)
+        time_str = now.strftime("%H:%M")
 
+        symbol_clean = symbol.replace("=X", "").replace("-USD", "/USD")
+        msg = f"""📡 توصية تلقائية
+زوج: {symbol_clean}
+الوقت المناسب للدخول: {time_str}
+RSI: {round(rsi, 2)} | MACD: {round(macd, 2)}
+الدعم: {round(support, 4)} | المقاومة: {round(resistance, 4)}
+القرار: {recommendation}
+نسبة الثقة: {confidence}% ✅"""
+
+        return msg
     except Exception as e:
-        print(f"❌ خطأ في التحليل للزوج {symbol}: {e}")
+        print(f"خطأ في {symbol}: {e}")
         return None
 
+async def send_signals():
+    while True:
+        for symbol in symbol_list:
+            signal = analyze_pair(symbol)
+            if signal:
+                try:
+                    await bot.send_message(chat_id=GROUP_ID, text=signal)
+                    await bot.send_message(chat_id=PRIVATE_USERNAME, text=signal)
+                    await asyncio.sleep(1)
+                except Exception as e:
+                    print("خطأ في الإرسال:", e)
+        await asyncio.sleep(60)
 
-# قائمة الأزواج + OTC
-symbols = [
-    "EURUSD=X", "GBPUSD=X", "USDJPY=X", "USDCHF=X", "USDCAD=X", "AUDUSD=X", "NZDUSD=X",
-    "EURGBP=X", "EURJPY=X", "GBPJPY=X", "EURCHF=X", "EURCAD=X", "GBPCAD=X", "AUDJPY=X",
-    "NZDJPY=X", "USDHKD=X", "USDSEK=X", "USDNOK=X", "USDSGD=X"
-]
+async def main():
+    app = ApplicationBuilder().token(TOKEN).build()
+    asyncio.create_task(send_signals())
+    await app.run_polling()
 
-# بدء إرسال التوصيات التلقائية
-while True:
-    for symbol in symbols:
-        analysis = analyze_pair(symbol)
-        if analysis:
-            bot.send_message(chat_id=CHAT_ID, text=analysis)
-            time.sleep(2)  # انتظار بسيط بين كل توصية
-
-    time.sleep(60)  # إرسال كل دقيقة
+if __name__ == "__main__":
+    asyncio.run(main())
