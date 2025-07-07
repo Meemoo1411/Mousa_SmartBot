@@ -43,15 +43,17 @@ def analyze(symbol):
         if confidence >= 90:
             message = f"🔔 توصية ذكية من البوت:\n"
             message += f"{signal}"
-الزوج: {symbol.replace('=X','')}
+pair_name = symbol.replace('=X','')
 RSI: {round(rsi,2)} | MACD: {round(macd,2)}
 الدعم: {round(support,2)} | المقاومة: {round(resistance,2)}
-message += f"نسبة الثقة: {confidence}%\n"%
-message += f"{recommendation}"
-            return message
-        else:
-            return None
-    except:
+recommendation = "Buy" if "USD" in pair_name else "Sell"
+        confidence = 95  # مثال لنسبة ثقة
+
+        message = f"توصية ذكية\nزوج: {pair_name}\nنسبة الثقة: {confidence}%\nالتوصية: {recommendation}"
+        return message
+
+    except Exception as e:
+        print(f"خطأ في الزوج {symbol}: {e}")
         return None
 
 # إرسال التوصيات تلقائيًا
