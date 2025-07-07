@@ -41,8 +41,8 @@ MACD: {round(macd,2)}
     return signal
 
 async def start(update, context):
-await update.message.reply_text('أهلاً بك في بوت التوصيات الذكية 🔍')
-اكتب /signal EURUSD للحصول على توصية.")
+await update.message.reply_text("أهلاً بك في بوت التوصيات الذكية 🔍")
+await update.message.reply_text("اكتب /signal EURUSD للحصول على توصية.")
 
 async def signal(update, context):
     if context.args:
