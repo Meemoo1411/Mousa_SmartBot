@@ -2,12 +2,19 @@ import time
 import yfinance as yf
 import pandas as pd
 import ta
-import telegram
+import telebot
+import time
+import threading
+from datetime import datetime
 
-# إعدادات البوت
-TOKEN = "8061215565:AAGpobcJor03wow2SmoVYN48RnF9UBet62g"
-bot = telegram.Bot(token=TOKEN)
-chat_usernames = ["@Mousa_SmartBot"]
+API_TOKEN = '8061215565:AAGpobcJor03wow2SmoVYN48RnF9UBet62g'
+USER_CHAT_ID = 839738530  # يرسل التوصيات للبوت الخاص فقط
+
+bot = telebot.TeleBot(API_TOKEN)
+
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "✅ تم تفعيل البوت الذكي V3 بنجاح! \nسوف تصلك التوصيات مباشرة هنا 📡")
 
 # الأزواج المدعومة (تحويل أسماء Yahoo Finance)
 pairs = {
