@@ -1,9 +1,7 @@
-
 import logging
 import yfinance as yf
 import pandas as pd
 import ta
-from telegram import Bot
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 import os
 
@@ -26,15 +24,12 @@ def analyze_pair(symbol):
     support = df["Low"].rolling(window=5).min().iloc[-1]
     resistance = df["High"].rolling(window=5).max().iloc[-1]
 
-    signal = "🔎 تحليل:
-"
-    signal += f"رمز الزوج: {symbol}
-"
-    signal += f"RSI: {round(rsi,2)}
+    signal = f"""🔎 تحليل:
+رمز الزوج: {symbol}
+RSI: {round(rsi,2)}
 MACD: {round(macd,2)}
-"
-    signal += f"الدعم: {round(support,2)} / المقاومة: {round(resistance,2)}
-"
+الدعم: {round(support,2)} / المقاومة: {round(resistance,2)}
+"""
 
     if rsi < 30 and macd < 0:
         signal += "✅ التوصية: شراء 🔼"
