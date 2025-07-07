@@ -45,7 +45,7 @@ def analyze_pair(symbol):
 نسبة الثقة: {confidence}%
 RSI: {round(rsi, 2)} | MACD: {round(macd, 2)}
 الدعم: {round(support, 2)} | المقاومة: {round(resistance, 2)}
-التوصية: {recommendation}"
+message = f"التوصية: {recommendation}"
 
         return message
 
