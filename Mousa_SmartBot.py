@@ -45,7 +45,7 @@ def analyze(symbol):
             message += f"{signal}"
 def analyze_pair(symbol):
     try:
-pair_name = symbol.replace('=X','')
+        pair_name = symbol.replace('=X','')
 RSI: {round(rsi,2)} | MACD: {round(macd,2)}
 الدعم: {round(support,2)} | المقاومة: {round(resistance,2)}
 recommendation = "Buy" if "USD" in pair_name else "Sell"
