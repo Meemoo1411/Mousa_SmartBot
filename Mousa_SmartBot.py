@@ -41,7 +41,8 @@ def analyze(symbol):
             recommendation = "⚠️ تذبذب"
 
         if confidence >= 90:
-            message = f"🔔 توصية ذكية
+            message = f"🔔 توصية ذكية من البوت:\n"
+            message += f"{signal}"
 الزوج: {symbol.replace('=X','')}
 RSI: {round(rsi,2)} | MACD: {round(macd,2)}
 الدعم: {round(support,2)} | المقاومة: {round(resistance,2)}
