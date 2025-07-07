@@ -15,6 +15,9 @@ bot = Bot(token=TOKEN)
 logging.basicConfig(level=logging.INFO)
 
 # دالة التحليل الفني الكامل
+
+import yfinance as yf
+
 def analyze_pair(symbol):
     try:
         pair_name = symbol.replace('=X', '')
@@ -59,6 +62,7 @@ def analyze_pair(symbol):
     except Exception as e:
         print(f"❌ خطأ في التحليل للزوج {symbol}: {e}")
         return None
+
 
 # قائمة الأزواج + OTC
 symbols = [
